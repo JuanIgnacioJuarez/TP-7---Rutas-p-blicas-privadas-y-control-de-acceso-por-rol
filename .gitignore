@@ -1,0 +1,19 @@
+# Dependencias y builds
+backend/node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Docker (solo uso local)
+docker-compose.yml
+abrir-con-docker.ps1
+abrir-con-docker.bat
+backend/Dockerfile
+backend/.dockerignore
+frontend/Dockerfile
+frontend/.dockerignore
+frontend/nginx.conf
+
+# Automatizaciones locales de VS Code (solo uso personal)
+.vscode/tasks.json
+.vscode/start-docker-watcher.ps1
+.vscode/docker-vscode-watcher.ps1
