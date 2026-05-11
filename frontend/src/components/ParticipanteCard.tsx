@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Participante } from '../models/Participante';
 import { useParticipantes } from '../context/useParticipantes';
+import { useAuth } from '../context/AuthContext';
 
 interface Props {
   p: Participante;
@@ -12,6 +13,7 @@ const ParticipanteCard: React.FC<Props> = ({ p }) => {
   const [confirmar, setConfirmar] = useState(false);
   const { eliminar } = useParticipantes();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const obtenerEstiloNivel = (nivel: string) => {
     switch (nivel) {
@@ -96,24 +98,26 @@ const ParticipanteCard: React.FC<Props> = ({ p }) => {
         </p>
       </div>
 
-      <div className="mt-4 flex gap-2 border-t border-black/5 pt-3">
-        <button
-          type="button"
-          onClick={() => p.id && navigate(`/editar/${p.id}`)}
-          className="flex-1 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest py-1.5 rounded hover:bg-blue-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-          aria-label={`Editar participante ${p.nombre}`}
-        >
-          Editar
-        </button>
-        <button
-          type="button"
-          onClick={() => setConfirmar(true)}
-          className="flex-1 bg-red-500 text-white text-[10px] font-bold uppercase tracking-widest py-1.5 rounded hover:bg-red-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
-          aria-label={`Eliminar participante ${p.nombre}`}
-        >
-          Eliminar
-        </button>
-      </div>
+      {user?.rol === "ADMIN" && (
+        <div className="mt-4 flex gap-2 border-t border-black/5 pt-3">
+          <button
+            type="button"
+            onClick={() => p.id && navigate(`/editar/${p.id}`)}
+            className="flex-1 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest py-1.5 rounded hover:bg-blue-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+            aria-label={`Editar participante ${p.nombre}`}
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmar(true)}
+            className="flex-1 bg-red-500 text-white text-[10px] font-bold uppercase tracking-widest py-1.5 rounded hover:bg-red-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+            aria-label={`Eliminar participante ${p.nombre}`}
+          >
+            Eliminar
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 };

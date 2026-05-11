@@ -1,19 +1,29 @@
 import { useState } from 'react';
-import { Link, NavLink, Route, Routes } from 'react-router-dom';
+import { Link, NavLink, Route, Routes, Navigate } from 'react-router-dom';
+import PrivateRoute from './routes/PrivateRoute';
 import HomePage from './pages/HomePage';
 import FormularioPage from './pages/FormularioPage';
 import EditarPage from './pages/EditarPage';
+import LoginPage from './pages/LoginPage';
 import { useParticipantes } from './context/useParticipantes';
+import { useAuth } from './context/AuthContext';
 
 function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { error, limpiarError } = useParticipantes();
 
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    setMenuAbierto(false);
+  };
+
   const linkClassName = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-2 rounded-lg text-sm font-semibold transition ${
+    `block px-4 py-2.5 mx-2 my-1 rounded-lg text-sm font-semibold transition ${
       isActive
         ? 'bg-blue-600 text-white'
-        : 'text-blue-900 hover:bg-blue-100'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-blue-900'
     }`;
 
   return (
@@ -30,44 +40,57 @@ function App() {
               </p>
             </Link>
 
-            <button
-              type="button"
-              className="md:hidden px-3 py-2 rounded-lg border border-slate-300 text-blue-900 font-bold"
-              onClick={() => setMenuAbierto((valorActual) => !valorActual)}
-              aria-label="Abrir menu"
-              aria-expanded={menuAbierto}
-            >
-              {menuAbierto ? 'X' : 'MENU'}
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                className="p-2 rounded-lg text-blue-900 hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-blue-600"
+                onClick={() => setMenuAbierto((valorActual) => !valorActual)}
+                aria-label="Alternar menú"
+                aria-expanded={menuAbierto}
+              >
+                {!menuAbierto ? (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                ) : (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+              </button>
 
-            <nav className="hidden md:flex items-center gap-2">
-              <NavLink to="/" className={linkClassName}>
-                Participantes
-              </NavLink>
-              <NavLink to="/nuevo" className={linkClassName}>
-                Nuevo
-              </NavLink>
-            </nav>
+              {menuAbierto && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 flex flex-col z-50">
+                  <NavLink
+                    to="/"
+                    className={linkClassName}
+                    onClick={() => setMenuAbierto(false)}
+                  >
+                    Participantes
+                  </NavLink>
+
+                  {user?.rol === "ADMIN" && (
+                    <NavLink
+                    to="/nuevo"
+                    className={linkClassName}
+                    onClick={() => setMenuAbierto(false)}
+                  >
+                    Nuevo
+                  </NavLink>
+                  )}
+
+                  <div className='border-t border-slate-100 my-1'></div>
+
+                  <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2.5 mx-2 my-1 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50 transition"
+                    >
+                      Cerrar Sesión
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-
-          {menuAbierto && (
-            <nav className="md:hidden mt-3 flex flex-col gap-2 border-t border-slate-200 pt-3">
-              <NavLink
-                to="/"
-                className={linkClassName}
-                onClick={() => setMenuAbierto(false)}
-              >
-                Participantes
-              </NavLink>
-              <NavLink
-                to="/nuevo"
-                className={linkClassName}
-                onClick={() => setMenuAbierto(false)}
-              >
-                Nuevo
-              </NavLink>
-            </nav>
-          )}
         </div>
       </header>
 
@@ -89,10 +112,33 @@ function App() {
           </div>
         )}
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/nuevo" element={<FormularioPage />} />
-          <Route path="/editar/:id" element={<EditarPage />} />
-          <Route path="*" element={<HomePage />} />
+          {/* 1. RUTA DEL LOGIN */}
+          <Route path="/login" element={<LoginPage />} />
+          
+          {/* 2. RUTAS PRIVADAS */}
+          <Route path="/lista" element={
+            <PrivateRoute>
+              <HomePage />
+            </PrivateRoute>
+          } />
+          
+          <Route path="/nuevo" element={
+            <PrivateRoute rol="ADMIN">
+              <FormularioPage />
+            </PrivateRoute>
+          } />
+          
+          <Route path="/editar/:id" element={
+            <PrivateRoute rol="ADMIN">
+              <EditarPage />
+            </PrivateRoute>
+          } />
+          
+          {/* 3. REDIRECCIONES POR DEFECTO */}
+          {/* Si entran a la raíz "/", van a la lista */}
+          <Route path="/" element={<Navigate to="/lista" replace />} />
+          {/* Si entran a cualquier otra cosa rara, van al login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
     </div>
