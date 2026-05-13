@@ -1,6 +1,7 @@
 import { createContext, useEffect, useReducer, useState } from 'react';
 import { Participante } from '../models/Participante';
 import { participantesReducer } from '../reducers/participantesReducer';
+import { useAuth } from './AuthContext';
 
 export interface ContextType {
   participantes: Participante[];
@@ -20,22 +21,30 @@ export const ParticipantesProvider = ({ children }: { children: React.ReactNode 
   const [error, setError] = useState<string | null>(null);
   const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/participantes`;
 
+  const { token } = useAuth();
+
   // GET inicial
   useEffect(() => {
-    fetch(API_URL)
+    if (!token) return;
+    fetch(API_URL, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => dispatch({ type: 'GET_PARTICIPANTES', payload: data }))
       .catch((err) => {
         console.error(err);
         setError('No se pudo cargar el listado de participantes.');
       });
-  }, [API_URL]);
+  }, [API_URL, token]);
 
   const agregar = (p: Participante) => {
     fetch(API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(p)
     })
@@ -54,7 +63,8 @@ export const ParticipantesProvider = ({ children }: { children: React.ReactNode 
     fetch(`${API_URL}/${p.id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(p)
     })
@@ -71,7 +81,10 @@ export const ParticipantesProvider = ({ children }: { children: React.ReactNode 
 
   const eliminar = (id: number) => {
     fetch(`${API_URL}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());

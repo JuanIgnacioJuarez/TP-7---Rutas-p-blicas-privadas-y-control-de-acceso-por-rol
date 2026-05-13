@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Participante } from '../models/Participante';
+import { useAuth } from '../context/AuthContext';
 
 interface FiltrosData {
   nombre: string;
@@ -25,6 +26,7 @@ const Filtros: React.FC<Props> = ({
   participantesAExportar
 }) => {
   const [mostrarConfirmacionReset, setMostrarConfirmacionReset] = useState(false);
+  const { user } = useAuth();
 
   const exportarDatos = () => {
     if (!participantesAExportar.length) return;
@@ -88,15 +90,17 @@ const Filtros: React.FC<Props> = ({
             Limpiar
           </button>
 
-          <button
+          {user?.rol === "ADMIN" && (
+            <button
             type="button"
             onClick={() => setMostrarConfirmacionReset(true)}
             className="text-xs bg-red-50 text-red-600 px-2 py-1.5 rounded hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
             title="Resetear datos"
             aria-label="Resetear todos los participantes"
           >
-            Reset
+            Eliminar Participantes
           </button>
+          )}
         </div>
       </div>
 

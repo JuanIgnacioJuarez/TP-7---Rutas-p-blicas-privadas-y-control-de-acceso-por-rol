@@ -16,8 +16,6 @@ const PORT = Number(process.env.PORT || 8080);
 app.use(cors());
 app.use(express.json());
 
-// Registro de rutas
-app.use("/participantes", participantesRoutes);
 // Ruta pública para login
 app.use("/auth", authRoutes);
 // Aplicamos verificarToken a todas las rutas de participantes
